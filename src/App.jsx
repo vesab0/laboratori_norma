@@ -1,6 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import './index.css'
 
+function useIsMobile() {
+  const [mobile, setMobile] = useState(() => window.innerWidth < 700)
+  useEffect(() => {
+    const fn = () => setMobile(window.innerWidth < 700)
+    window.addEventListener('resize', fn)
+    return () => window.removeEventListener('resize', fn)
+  }, [])
+  return mobile
+}
+
 function DotsCanvas({ opacity = 1 }) {
   const canvasRef = useRef(null)
 
@@ -270,40 +280,115 @@ function HeroBtn({ href, primary, children }) {
   )
 }
 
+function Hamburger({ open }) {
+  return open ? (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <path d="M5 5l12 12M17 5L5 17" stroke="#111" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  ) : (
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <path d="M3 6h16M3 11h16M3 16h16" stroke="#111" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  )
+}
 
 export default function App() {
+  const isMobile = useIsMobile()
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  const sectionPad = isMobile ? '72px 0' : '112px 0'
+
   return (
     <div style={{ fontFamily: "'Inter', system-ui, sans-serif", background: '#fff', color: '#111', minHeight: '100vh' }}>
 
       <header style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
-        background: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(12px)',
+        background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(12px)',
         borderBottom: '1px solid #f0f0f0',
       }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 28px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 24px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <a href="#" style={{ display: 'flex', alignItems: 'center' }}><Logo /></a>
-          <nav style={{ display: 'flex', gap: 32 }}>
-            {navLinks.map(([href, label]) => (
-              <NavLink key={href} href={href} label={label} />
-            ))}
-          </nav>
-          <a href="tel:+38345102100" style={{ fontSize: 13, fontWeight: 500, color: '#2ecc71', textDecoration: 'none' }}>
-            +383 45 102 100
-          </a>
+
+          {!isMobile && (
+            <nav style={{ display: 'flex', gap: 32 }}>
+              {navLinks.map(([href, label]) => (
+                <NavLink key={href} href={href} label={label} />
+              ))}
+            </nav>
+          )}
+
+          {!isMobile && (
+            <a href="tel:+38345102100" style={{ fontSize: 13, fontWeight: 500, color: '#2ecc71', textDecoration: 'none' }}>
+              +383 45 102 100
+            </a>
+          )}
+
+          {isMobile && (
+            <button
+              onClick={() => setMenuOpen(o => !o)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center' }}
+              aria-label="Menu"
+            >
+              <Hamburger open={menuOpen} />
+            </button>
+          )}
         </div>
+
+        {isMobile && menuOpen && (
+          <div style={{
+            borderTop: '1px solid #f0f0f0',
+            padding: '24px 24px 28px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 0,
+          }}>
+            {navLinks.map(([href, label]) => (
+              <a
+                key={href}
+                href={href}
+                onClick={() => setMenuOpen(false)}
+                style={{
+                  display: 'block',
+                  padding: '14px 0',
+                  borderBottom: '1px solid #f5f5f5',
+                  color: '#111',
+                  textDecoration: 'none',
+                  fontSize: 16,
+                  fontWeight: 500,
+                }}
+              >
+                {label}
+              </a>
+            ))}
+            <a
+              href="tel:+38345102100"
+              onClick={() => setMenuOpen(false)}
+              style={{
+                display: 'block',
+                paddingTop: 20,
+                color: '#2ecc71',
+                textDecoration: 'none',
+                fontSize: 15,
+                fontWeight: 500,
+              }}
+            >
+              +383 45 102 100
+            </a>
+          </div>
+        )}
       </header>
 
       <section style={{ position: 'relative', display: 'flex', alignItems: 'center', paddingTop: 64, overflow: 'hidden', background: '#fff' }}>
         <DotsCanvas />
-        <div style={{ position: 'relative', zIndex: 10, maxWidth: 1100, margin: '0 auto', padding: '96px 28px 80px' }}>
+        <div style={{ position: 'relative', zIndex: 10, maxWidth: 1100, margin: '0 auto', padding: isMobile ? '72px 24px 56px' : '96px 28px 80px' }}>
           <p style={{ fontSize: 11, fontWeight: 600, color: '#2ecc71', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 24 }}>
             Laboratori Norma — Prishtinë
           </p>
-          <h1 style={{ fontSize: 'clamp(42px, 6vw, 76px)', fontWeight: 300, color: '#111', lineHeight: 1.1, letterSpacing: '-2px', maxWidth: 700, marginBottom: 28, margin: '0 0 28px' }}>
+          <h1 style={{ fontSize: 'clamp(36px, 6vw, 76px)', fontWeight: 300, color: '#111', lineHeight: 1.1, letterSpacing: isMobile ? '-1px' : '-2px', maxWidth: 700, margin: '0 0 28px' }}>
             Diagnoza e saktë,<br />
             <span style={{ color: '#2ecc71' }}>shëndeti</span> juaj.
           </h1>
-          <p style={{ fontSize: 17, color: '#888', maxWidth: 480, lineHeight: 1.7, fontWeight: 300, marginBottom: 48, margin: '0 0 48px' }}>
+          <p style={{ fontSize: isMobile ? 15 : 17, color: '#888', maxWidth: 480, lineHeight: 1.7, fontWeight: 300, margin: '0 0 48px' }}>
             Analiza laboratorike me standarde ndërkombëtare, aparaturë moderne dhe rezultate të besueshme.
           </p>
           <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
@@ -313,19 +398,18 @@ export default function App() {
         </div>
       </section>
 
-
-      <section id="about" style={{ padding: '112px 0', background: '#fff' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 28px' }}>
-          <div style={{ maxWidth: 500, marginBottom: 72 }}>
-            <h2 style={{ fontSize: 'clamp(28px, 3.5vw, 42px)', fontWeight: 300, color: '#111', letterSpacing: '-1px', lineHeight: 1.2, margin: 0 }}>
+      <section id="about" style={{ padding: sectionPad, background: '#fff' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 24px' }}>
+          <div style={{ maxWidth: 500, marginBottom: isMobile ? 48 : 72 }}>
+            <h2 style={{ fontSize: 'clamp(26px, 3.5vw, 42px)', fontWeight: 300, color: '#111', letterSpacing: '-1px', lineHeight: 1.2, margin: 0 }}>
               Teknologji moderne,<br />rezultate që mund t'u besoni.
             </h2>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 64 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: isMobile ? 40 : 64 }}>
             {pillars.map((p, i) => (
               <div key={i}>
                 <div style={{ width: 32, height: 2, background: '#2ecc71', marginBottom: 20 }} />
-                <h3 style={{ fontSize: 14, fontWeight: 600, color: '#111', marginBottom: 12, margin: '0 0 12px' }}>{p.label}</h3>
+                <h3 style={{ fontSize: 14, fontWeight: 600, color: '#111', margin: '0 0 12px' }}>{p.label}</h3>
                 <p style={{ fontSize: 13, color: '#888', lineHeight: 1.75, fontWeight: 300, margin: 0 }}>{p.text}</p>
               </div>
             ))}
@@ -333,18 +417,18 @@ export default function App() {
         </div>
       </section>
 
-      <section id="services" style={{ padding: '112px 0', background: '#f9f9f9', position: 'relative', overflow: 'hidden' }}>
+      <section id="services" style={{ padding: sectionPad, background: '#f9f9f9', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: -120, right: -120, width: 400, height: 400, borderRadius: '50%', background: '#d4f5e2', opacity: 0.5, filter: 'blur(80px)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: -120, left: -120, width: 400, height: 400, borderRadius: '50%', background: '#d4f5e2', opacity: 0.5, filter: 'blur(80px)', pointerEvents: 'none' }} />
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: 1100, margin: '0 auto', padding: '0 28px' }}>
-          <div style={{ maxWidth: 500, marginBottom: 72 }}>
-            <h2 style={{ fontSize: 'clamp(28px, 3.5vw, 42px)', fontWeight: 300, color: '#111', letterSpacing: '-1px', lineHeight: 1.2, margin: 0 }}>
-              Shërbime laboratorike<br />
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: 1100, margin: '0 auto', padding: '0 24px' }}>
+          <div style={{ maxWidth: 500, marginBottom: isMobile ? 48 : 72 }}>
+            <h2 style={{ fontSize: 'clamp(26px, 3.5vw, 42px)', fontWeight: 300, color: '#111', letterSpacing: '-1px', lineHeight: 1.2, margin: 0 }}>
+              Shërbime laboratorike
             </h2>
           </div>
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(200px, 1fr))',
             border: '1px solid #e8e8e8',
             borderRadius: 16,
             overflow: 'hidden',
@@ -353,24 +437,23 @@ export default function App() {
               <ServiceItem key={s} name={s} />
             ))}
           </div>
-
         </div>
       </section>
 
-      <section id="contact" style={{ padding: '112px 0', background: '#fff' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 28px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'start' }}>
+      <section id="contact" style={{ padding: sectionPad, background: '#fff' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 24px', display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? 48 : 80, alignItems: 'start' }}>
           <div>
-            <p style={{ fontSize: 11, fontWeight: 600, color: '#2ecc71', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 16, margin: '0 0 16px' }}>
+            <p style={{ fontSize: 11, fontWeight: 600, color: '#2ecc71', letterSpacing: '0.18em', textTransform: 'uppercase', margin: '0 0 16px' }}>
               Kontakt
             </p>
-            <h2 style={{ fontSize: 'clamp(28px, 3.5vw, 42px)', fontWeight: 300, color: '#111', letterSpacing: '-1px', lineHeight: 1.2, marginBottom: 52, margin: '0 0 52px' }}>
+            <h2 style={{ fontSize: 'clamp(26px, 3.5vw, 42px)', fontWeight: 300, color: '#111', letterSpacing: '-1px', lineHeight: 1.2, margin: '0 0 52px' }}>
               Na kontaktoni.
             </h2>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
               {contactBlocks.map((block) => (
                 <div key={block.label}>
-                  <p style={{ fontSize: 10, fontWeight: 600, color: '#ccc', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 10, margin: '0 0 10px' }}>
+                  <p style={{ fontSize: 10, fontWeight: 600, color: '#ccc', letterSpacing: '0.15em', textTransform: 'uppercase', margin: '0 0 10px' }}>
                     {block.label}
                   </p>
                   {block.lines && block.lines.map((l, i) => (
@@ -384,7 +467,7 @@ export default function App() {
             </div>
           </div>
 
-          <div style={{ borderRadius: 20, overflow: 'hidden', border: '1px solid #e8e8e8', aspectRatio: '1', position: 'relative' }}>
+          <div style={{ borderRadius: 20, overflow: 'hidden', border: '1px solid #e8e8e8', aspectRatio: isMobile ? '4/3' : '1', position: 'relative' }}>
             <iframe
               title="Laboratori Norma — Harta"
               src="https://www.openstreetmap.org/export/embed.html?bbox=21.1567%2C42.6374%2C21.1768%2C42.6494&layer=mapnik&marker=42.6434%2C21.1668"
@@ -411,7 +494,7 @@ export default function App() {
       </section>
 
       <footer style={{ borderTop: '1px solid #f0f0f0', padding: '28px 0', background: '#fff' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 28px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 24px', display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: 'center', justifyContent: 'space-between', gap: isMobile ? 6 : 0, textAlign: isMobile ? 'center' : 'left' }}>
           <span style={{ fontSize: 12, color: '#ccc' }}>
             © 2024 Laboratori <span style={{ color: '#2ecc71' }}>Norma</span>. Të gjitha të drejtat e rezervuara.
           </span>
